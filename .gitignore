@@ -1,0 +1,49 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE / Editors
+.idea/
+.vscode/
+*.iml
+
+# Java / Build
+target/
+build/
+out/
+.classpath
+.project
+.settings/
+.gradle/
+
+# Logs
+logs/
+*.log
+
+# Node / Frontend
+node_modules/
+dist/
+.next/
+.nuxt/
+.svelte-kit/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Docker / Temp
+*.pid
+tmp/
+*.bak
+
+# Data files (large datasets)
+*.tsv
+*.tsv.gz
+*.csv
+
+# Misc local overrides
+*.local.*

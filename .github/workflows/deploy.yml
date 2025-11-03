@@ -1,0 +1,64 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout (optional, not required for deploy-only)
+        uses: actions/checkout@v4
+
+      - name: Generate deploy compose file
+        run: |
+          mkdir -p ./deploy
+          cat > ./deploy/compose.deploy.yml <<'EOF'
+          version: "3.9"
+          services:
+            db:
+              image: ${DB_IMAGE:-postgres:16-alpine}
+              container_name: imdb_db
+              environment:
+                POSTGRES_DB: imdb
+                POSTGRES_USER: postgres
+                POSTGRES_PASSWORD: postgres
+              ports:
+                - "5432:5432"
+              volumes:
+                - imdb_pgdata:/var/lib/postgresql/data
+            backend:
+              image: ${BACKEND_IMAGE:-1rptr1/1rptr1:backend}
+              container_name: imdb_backend
+              environment:
+                PORT: 3001
+                DB_HOST: db
+                DB_PORT: 5432
+                DB_NAME: imdb
+                DB_USER: postgres
+                DB_PASSWORD: postgres
+                QUERY_TIMEOUT_SECONDS: 10
+              depends_on:
+                - db
+              ports:
+                - "3001:3001"
+            frontend:
+              image: ${FRONTEND_IMAGE:-1rptr1/1rptr1:frontend}
+              container_name: imdb_frontend
+              depends_on:
+                - backend
+              ports:
+                - "8080:80"
+          volumes:
+            imdb_pgdata:
+          EOF
+
+      - name: Pull images and start
+        env:
+          DB_IMAGE: ${{ secrets.DB_IMAGE }}
+          BACKEND_IMAGE: ${{ secrets.BACKEND_IMAGE }}
+          FRONTEND_IMAGE: ${{ secrets.FRONTEND_IMAGE }}
+        run: |
+          docker compose -f ./deploy/compose.deploy.yml pull
+          docker compose -f ./deploy/compose.deploy.yml up -d
+          docker ps -a

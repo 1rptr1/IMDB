@@ -1,0 +1,504 @@
+﻿[
+  {"id":"p001","title":"Count titles","description":"Using the basics table, write a single SELECT query that returns one row with a single column named total representing the total number of rows in basics. Do not filter or join; simply compute the overall count of all rows in the table.","difficulty":"easy","tables":["basics"],"starterSql":"SELECT COUNT(*) AS total FROM basics;","solutionSql":"SELECT COUNT(*) AS total FROM basics;"},
+  {"id":"p002","title":"Top 10 by votes","description":"List 10 titles with most votes.","difficulty":"easy","tables":["ratings","basics"],"starterSql":"SELECT b.primaryTitle, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst ORDER BY r.numVotes DESC LIMIT 10;","solutionSql":"SELECT b.primaryTitle, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst ORDER BY r.numVotes DESC LIMIT 10;"},
+  {"id":"p003","title":"Average rating >= 8","description":"Titles rated 8.0 or higher.","difficulty":"easy","tables":["ratings","basics"],"starterSql":"SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE r.averageRating >= 8 ORDER BY r.averageRating DESC, b.primaryTitle LIMIT 50;","solutionSql":"SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE r.averageRating >= 8 ORDER BY r.averageRating DESC, b.primaryTitle LIMIT 50;"},
+  {"id":"p004","title":"Movies only","description":"Filter basics by titleType = 'movie'.","difficulty":"easy","tables":["basics"],"starterSql":"SELECT tconst, primaryTitle FROM basics WHERE titleType='movie' LIMIT 50;","solutionSql":"SELECT tconst, primaryTitle FROM basics WHERE titleType='movie' LIMIT 50;"},
+  {"id":"p005","title":"Adults content count","description":"How many isAdult = true.","difficulty":"easy","tables":["basics"],"starterSql":"SELECT COUNT(*) AS cnt FROM basics WHERE isAdult = TRUE;","solutionSql":"SELECT COUNT(*) AS cnt FROM basics WHERE isAdult = TRUE;"},
+  {"id":"p006","title":"Years coverage","description":"Min and max startYear.","difficulty":"easy","tables":["basics"],"starterSql":"SELECT MIN(startYear) AS min_year, MAX(startYear) AS max_year FROM basics;","solutionSql":"SELECT MIN(startYear), MAX(startYear) FROM basics;"},
+  {"id":"p007","title":"Title with most akas","description":"Find titleId having most alternate titles.","difficulty":"medium","tables":["akas"],"starterSql":"SELECT titleId, COUNT(*) AS aka_count FROM akas GROUP BY titleId ORDER BY aka_count DESC LIMIT 1;","solutionSql":"SELECT titleId, COUNT(*) AS aka_count FROM akas GROUP BY titleId ORDER BY aka_count DESC LIMIT 1;"},
+  {"id":"p008","title":"Crew present","description":"Titles that have crew info.","difficulty":"easy","tables":["crew","basics"],"starterSql":"SELECT b.primaryTitle FROM basics b JOIN crew c ON c.tconst=b.tconst LIMIT 50;","solutionSql":"SELECT b.primaryTitle FROM basics b JOIN crew c ON c.tconst=b.tconst LIMIT 50;"},
+  {"id":"p009","title":"Episodes per parent","description":"Count episodes per parentTconst.","difficulty":"medium","tables":["episode"],"starterSql":"SELECT parentTconst, COUNT(*) AS episodes FROM episode GROUP BY parentTconst ORDER BY episodes DESC LIMIT 20;","solutionSql":"SELECT parentTconst, COUNT(*) AS episodes FROM episode GROUP BY parentTconst ORDER BY episodes DESC LIMIT 20;"},
+  {"id":"p010","title":"Top actors by appearances","description":"People with most principals appearances (category actor/actress).","difficulty":"medium","tables":["principals","name_basics"],"starterSql":"SELECT n.primaryName, COUNT(*) AS appearances FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') GROUP BY n.primaryName ORDER BY appearances DESC LIMIT 20;","solutionSql":"SELECT n.primaryName, COUNT(*) AS appearances FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') GROUP BY n.primaryName ORDER BY appearances DESC LIMIT 20;"},
+  {"id":"p011","title":"Average rating by decade","description":"Group average rating by decade of startYear.","difficulty":"medium","tables":["basics","ratings"],"starterSql":"SELECT (b.startYear/10)*10 AS decade, AVG(r.averageRating) AS avg_rating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.startYear IS NOT NULL GROUP BY decade ORDER BY decade;","solutionSql":"SELECT (b.startYear/10)*10 AS decade, AVG(r.averageRating) FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.startYear IS NOT NULL GROUP BY decade ORDER BY decade;"},
+  {"id":"p012","title":"English titles","description":"Akas where language='en'.","difficulty":"easy","tables":["akas"],"starterSql":"SELECT titleId, title FROM akas WHERE language='en' LIMIT 50;","solutionSql":"SELECT titleId, title FROM akas WHERE language='en' LIMIT 50;"},
+  {"id":"p013","title":"Known for counts","description":"How many titles each person is known for (using knownForTitles split count).","difficulty":"medium","tables":["name_basics"],"starterSql":"SELECT nconst, primaryName, CASE WHEN knownForTitles IS NULL OR knownForTitles='' THEN 0 ELSE array_length(string_to_array(knownForTitles, ','),1) END AS kf_count FROM name_basics ORDER BY kf_count DESC NULLS LAST LIMIT 50;","solutionSql":"SELECT nconst, primaryName, CASE WHEN knownForTitles IS NULL OR knownForTitles='' THEN 0 ELSE array_length(string_to_array(knownForTitles, ','),1) END AS kf_count FROM name_basics ORDER BY kf_count DESC NULLS LAST LIMIT 50;"},
+  {"id":"p014","title":"Longest runtime","description":"Top 10 by runtimeMinutes.","difficulty":"easy","tables":["basics"],"starterSql":"SELECT primaryTitle, runtimeMinutes FROM basics ORDER BY runtimeMinutes DESC NULLS LAST LIMIT 10;","solutionSql":"SELECT primaryTitle, runtimeMinutes FROM basics ORDER BY runtimeMinutes DESC NULLS LAST LIMIT 10;"},
+  {"id":"p015","title":"Directors with many titles","description":"Top directors by number of titles they directed (split directors).","difficulty":"hard","tables":["crew","name_basics"],"starterSql":"SELECT n.primaryName, COUNT(*) AS titles FROM (SELECT unnest(string_to_array(directors, ',')) AS nconst FROM crew WHERE directors IS NOT NULL) c JOIN name_basics n ON n.nconst=c.nconst GROUP BY n.primaryName ORDER BY titles DESC LIMIT 20","solutionSql":"SELECT n.primaryName, COUNT(*) AS titles FROM (SELECT unnest(string_to_array(directors, ',')) AS nconst FROM crew WHERE directors IS NOT NULL) c JOIN name_basics n ON n.nconst=c.nconst GROUP BY n.primaryName ORDER BY titles DESC LIMIT 20"},
+  {"id":"p016","title":"Writers with many titles","description":"Top writers by number of titles they wrote (split writers).","difficulty":"hard","tables":["crew","name_basics"],"starterSql":"SELECT n.primaryName, COUNT(*) AS titles FROM (SELECT unnest(string_to_array(writers, ',')) AS nconst FROM crew WHERE writers IS NOT NULL) c JOIN name_basics n ON n.nconst=c.nconst GROUP BY n.primaryName ORDER BY titles DESC LIMIT 20","solutionSql":"SELECT n.primaryName, COUNT(*) AS titles FROM (SELECT unnest(string_to_array(writers, ',')) AS nconst FROM crew WHERE writers IS NOT NULL) c JOIN name_basics n ON n.nconst=c.nconst GROUP BY n.primaryName ORDER BY titles DESC LIMIT 20"},
+  {"id":"p017","title":"Highly rated movies","description":"Movies with rating >= 9 and at least 1000 votes.","difficulty":"medium","tables":["basics","ratings"],"starterSql":"SELECT b.primaryTitle, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND r.averageRating>=9 AND r.numVotes>=1000 ORDER BY r.averageRating DESC, r.numVotes DESC LIMIT 50;","solutionSql":"SELECT b.primaryTitle, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND r.averageRating>=9 AND r.numVotes>=1000 ORDER BY r.averageRating DESC, r.numVotes DESC LIMIT 50;"},
+  {"id":"p018","title":"Region popularity","description":"Top regions by number of akas entries.","difficulty":"easy","tables":["akas"],"starterSql":"SELECT region, COUNT(*) AS cnt FROM akas GROUP BY region ORDER BY cnt DESC NULLS LAST LIMIT 20;","solutionSql":"SELECT region, COUNT(*) AS cnt FROM akas GROUP BY region ORDER BY cnt DESC NULLS LAST LIMIT 20;"},
+  {"id":"p019","title":"Genre frequency","description":"Top genres by frequency (split genres).","difficulty":"medium","tables":["basics"],"starterSql":"SELECT g.genre, COUNT(*) AS cnt FROM (SELECT unnest(string_to_array(genres, ',')) AS genre FROM basics WHERE genres IS NOT NULL) g GROUP BY g.genre ORDER BY cnt DESC LIMIT 20","solutionSql":"SELECT g.genre, COUNT(*) AS cnt FROM (SELECT unnest(string_to_array(genres, ',')) AS genre FROM basics WHERE genres IS NOT NULL) g GROUP BY g.genre ORDER BY cnt DESC LIMIT 20"},
+  {"id":"p020","title":"First seasons","description":"Episodes with seasonNumber = 1.","difficulty":"easy","tables":["episode"],"starterSql":"SELECT tconst, parentTconst FROM episode WHERE seasonNumber=1 LIMIT 50;","solutionSql":"SELECT tconst, parentTconst FROM episode WHERE seasonNumber=1 LIMIT 50;"},
+  {"id":"p021","title":"Average runtime by genre","description":"Average runtimeMinutes per genre.","difficulty":"medium","tables":["basics"],"starterSql":"SELECT genre, AVG(runtimeMinutes) AS avg_runtime FROM (SELECT tconst, unnest(string_to_array(genres, ',')) AS genre, runtimeMinutes FROM basics) g GROUP BY genre ORDER BY avg_runtime DESC NULLS LAST LIMIT 20","solutionSql":"SELECT genre, AVG(runtimeMinutes) FROM (SELECT tconst, unnest(string_to_array(genres, ',')) AS genre, runtimeMinutes FROM basics) g GROUP BY genre ORDER BY AVG(runtimeMinutes) DESC NULLS LAST LIMIT 20"},
+  {"id":"p022","title":"People born before 1900","description":"List 20 names born before 1900.","difficulty":"easy","tables":["name_basics"],"starterSql":"SELECT primaryName, birthYear FROM name_basics WHERE birthYear < 1900 ORDER BY birthYear LIMIT 20;","solutionSql":"SELECT primaryName, birthYear FROM name_basics WHERE birthYear < 1900 ORDER BY birthYear LIMIT 20;"},
+  {"id":"p023","title":"Most prolific actors by decade","description":"For each decade, actor/actress with most appearances.","difficulty":"hard","tables":["principals","basics","name_basics"],"starterSql":"SELECT decade, n.primaryName, COUNT(*) AS appearances FROM (SELECT (b.startYear/10)*10 AS decade, p.nconst FROM principals p JOIN basics b ON b.tconst=p.tconst WHERE p.category IN ('actor','actress') AND b.startYear IS NOT NULL) bp JOIN name_basics n ON n.nconst=bp.nconst GROUP BY decade, n.primaryName QUALIFY ROW_NUMBER() OVER (PARTITION BY decade ORDER BY COUNT(*) DESC) = 1","solutionSql":"SELECT a.decade, n.primaryName, a.c FROM (SELECT decade, nconst, COUNT(*) AS c FROM (SELECT (b.startYear/10)*10 AS decade, p.nconst FROM principals p JOIN basics b ON b.tconst=p.tconst WHERE p.category IN ('actor','actress') AND b.startYear IS NOT NULL) bp GROUP BY decade, nconst) a JOIN name_basics n ON n.nconst=a.nconst WHERE (a.decade, a.c) IN (SELECT decade, MAX(c) FROM (SELECT decade, nconst, COUNT(*) AS c FROM (SELECT (b.startYear/10)*10 AS decade, p.nconst FROM principals p JOIN basics b ON b.tconst=p.tconst WHERE p.category IN ('actor','actress') AND b.startYear IS NOT NULL) bp GROUP BY decade, nconst) agg GROUP BY decade) ORDER BY a.decade"},
+  {"id":"p024","title":"Title types breakdown","description":"Count of rows per titleType.","difficulty":"easy","tables":["basics"],"starterSql":"SELECT titleType, COUNT(*) FROM basics GROUP BY titleType ORDER BY COUNT(*) DESC;","solutionSql":"SELECT titleType, COUNT(*) FROM basics GROUP BY titleType ORDER BY COUNT(*) DESC;"},
+  {"id":"p025","title":"Co-actors","description":"Pairs of people who appeared in the same title (top 20 pairs).","difficulty":"hard","tables":["principals","name_basics"],"starterSql":"SELECT n1.primaryName AS person1, n2.primaryName AS person2, COUNT(*) AS together FROM (SELECT tconst, nconst FROM principals) pa JOIN (SELECT tconst, nconst FROM principals) pb ON pa.tconst=pb.tconst AND pa.nconst<pb.nconst JOIN name_basics n1 ON n1.nconst=pa.nconst JOIN name_basics n2 ON n2.nconst=pb.nconst GROUP BY person1, person2 ORDER BY together DESC LIMIT 20","solutionSql":"SELECT pairs.a, pairs.b, COUNT(*) AS together FROM (SELECT a.nconst AS a, b.nconst AS b FROM (SELECT tconst, nconst FROM principals) a JOIN (SELECT tconst, nconst FROM principals) b ON a.tconst=b.tconst AND a.nconst<b.nconst) pairs GROUP BY pairs.a, pairs.b ORDER BY together DESC LIMIT 20"},
+  {"id":"p026","title":"Top regions per title","description":"For each title, most common region among its akas (limit 20 titles).","difficulty":"hard","tables":["akas"],"starterSql":"SELECT a.titleId, a.region, a.c FROM (SELECT titleId, region, COUNT(*) AS c FROM akas GROUP BY titleId, region) a JOIN (SELECT titleId, MAX(c) AS mc FROM (SELECT titleId, region, COUNT(*) AS c FROM akas GROUP BY titleId, region) agg GROUP BY titleId) m ON m.titleId=a.titleId AND m.mc=a.c ORDER BY a.c DESC LIMIT 20","solutionSql":"SELECT a.titleId, a.region, a.c FROM (SELECT titleId, region, COUNT(*) AS c FROM akas GROUP BY titleId, region) a JOIN (SELECT titleId, MAX(c) AS mc FROM (SELECT titleId, region, COUNT(*) AS c FROM akas GROUP BY titleId, region) agg GROUP BY titleId) m ON m.titleId=a.titleId AND m.mc=a.c ORDER BY a.c DESC LIMIT 20"},
+  {"id":"p027","title":"Titles with no rating","description":"Basics rows without matching ratings.","difficulty":"medium","tables":["basics","ratings"],"starterSql":"SELECT b.tconst, b.primaryTitle FROM basics b LEFT JOIN ratings r ON r.tconst=b.tconst WHERE r.tconst IS NULL LIMIT 50;","solutionSql":"SELECT b.tconst, b.primaryTitle FROM basics b LEFT JOIN ratings r ON r.tconst=b.tconst WHERE r.tconst IS NULL LIMIT 50;"},
+  {"id":"p028","title":"People without deathYear","description":"List 50 people with unknown deathYear.","difficulty":"easy","tables":["name_basics"],"starterSql":"SELECT primaryName FROM name_basics WHERE deathYear IS NULL LIMIT 50;","solutionSql":"SELECT primaryName FROM name_basics WHERE deathYear IS NULL LIMIT 50;"},
+  {"id":"p029","title":"Average votes by titleType","description":"Average numVotes per titleType.","difficulty":"medium","tables":["basics","ratings"],"starterSql":"SELECT b.titleType, AVG(r.numVotes) AS avg_votes FROM basics b JOIN ratings r ON r.tconst=b.tconst GROUP BY b.titleType ORDER BY avg_votes DESC;","solutionSql":"SELECT b.titleType, AVG(r.numVotes) FROM basics b JOIN ratings r ON r.tconst=b.tconst GROUP BY b.titleType ORDER BY AVG(r.numVotes) DESC;"},
+  {"id":"p030","title":"Series with most episodes","description":"Parent with most episodes.","difficulty":"medium","tables":["episode"],"starterSql":"SELECT parentTconst, COUNT(*) AS c FROM episode GROUP BY parentTconst ORDER BY c DESC LIMIT 10;","solutionSql":"SELECT parentTconst, COUNT(*) FROM episode GROUP BY parentTconst ORDER BY COUNT(*) DESC LIMIT 10;"},
+  {"id":"p031","title":"Titles per person","description":"Number of titles listed in knownForTitles.","difficulty":"easy","tables":["name_basics"],"starterSql":"SELECT primaryName, array_length(string_to_array(knownForTitles, ','),1) AS cnt FROM name_basics WHERE knownForTitles IS NOT NULL LIMIT 50;","solutionSql":"SELECT primaryName, array_length(string_to_array(knownForTitles, ','),1) FROM name_basics WHERE knownForTitles IS NOT NULL LIMIT 50;"},
+  {"id":"p032","title":"Actors in a title","description":"Given a tconst, list actors.","difficulty":"medium","tables":["principals","name_basics"],"starterSql":"SELECT n.primaryName FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND p.tconst=':tconst' ORDER BY n.primaryName","solutionSql":"SELECT n.primaryName FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND p.tconst='tt0031458' ORDER BY n.primaryName"},
+  {"id":"p033","title":"Countries by count","description":"Count akas by region.","difficulty":"easy","tables":["akas"],"starterSql":"SELECT region, COUNT(*) FROM akas GROUP BY region ORDER BY COUNT(*) DESC NULLS LAST LIMIT 20;","solutionSql":"SELECT region, COUNT(*) FROM akas GROUP BY region ORDER BY COUNT(*) DESC NULLS LAST LIMIT 20;"},
+  {"id":"p034","title":"Episodes with missing numbers","description":"Episodes with NULL season or episode number.","difficulty":"medium","tables":["episode"],"starterSql":"SELECT tconst FROM episode WHERE seasonNumber IS NULL OR episodeNumber IS NULL LIMIT 50;","solutionSql":"SELECT tconst FROM episode WHERE seasonNumber IS NULL OR episodeNumber IS NULL LIMIT 50;"},
+  {"id":"p035","title":"Top categories in principals","description":"Most frequent categories.","difficulty":"easy","tables":["principals"],"starterSql":"SELECT category, COUNT(*) AS c FROM principals GROUP BY category ORDER BY c DESC LIMIT 20;","solutionSql":"SELECT category, COUNT(*) FROM principals GROUP BY category ORDER BY COUNT(*) DESC LIMIT 20;"},
+  {"id":"p036","title":"People with multiple professions","description":"PrimaryProfession with multiple entries (comma).","difficulty":"medium","tables":["name_basics"],"starterSql":"SELECT primaryName, primaryProfession FROM name_basics WHERE primaryProfession LIKE '%,%' LIMIT 50;","solutionSql":"SELECT primaryName, primaryProfession FROM name_basics WHERE primaryProfession LIKE '%,%' LIMIT 50;"},
+  {"id":"p037","title":"Average rating per genre","description":"Average rating grouping by genre (join basics/ratings).","difficulty":"medium","tables":["basics","ratings"],"starterSql":"SELECT g.genre, AVG(r.averageRating) AS avg_rating FROM (SELECT b.tconst, unnest(string_to_array(b.genres, ',')) AS genre FROM basics b) g JOIN ratings r ON r.tconst=g.tconst GROUP BY g.genre ORDER BY avg_rating DESC NULLS LAST LIMIT 20","solutionSql":"SELECT g.genre, AVG(r.averageRating) FROM (SELECT b.tconst, unnest(string_to_array(b.genres, ',')) AS genre FROM basics b) g JOIN ratings r ON r.tconst=g.tconst GROUP BY g.genre ORDER BY AVG(r.averageRating) DESC NULLS LAST LIMIT 20"},
+  {"id":"p038","title":"Crew overlap","description":"Titles where same person is both writer and director.","difficulty":"hard","tables":["crew"],"starterSql":"SELECT tconst FROM crew WHERE directors IS NOT NULL AND writers IS NOT NULL AND EXISTS (SELECT 1 FROM unnest(string_to_array(directors, ',')) d INTERSECT SELECT 1 FROM unnest(string_to_array(writers, ',')) w) LIMIT 50","solutionSql":"SELECT d.tconst FROM (SELECT tconst, unnest(string_to_array(directors, ',')) AS n FROM crew WHERE directors IS NOT NULL) d JOIN (SELECT tconst, unnest(string_to_array(writers, ',')) AS n FROM crew WHERE writers IS NOT NULL) w ON d.tconst=w.tconst AND d.n=w.n GROUP BY d.tconst LIMIT 50"},
+  {"id":"p039","title":"Most frequent languages","description":"Top languages in akas.","difficulty":"easy","tables":["akas"],"starterSql":"SELECT language, COUNT(*) FROM akas GROUP BY language ORDER BY COUNT(*) DESC NULLS LAST LIMIT 20;","solutionSql":"SELECT language, COUNT(*) FROM akas GROUP BY language ORDER BY COUNT(*) DESC NULLS LAST LIMIT 20;"},
+  {"id":"p040","title":"Longest-running series","description":"Series with largest seasonNumber observed.","difficulty":"medium","tables":["episode","basics"],"starterSql":"SELECT b.primaryTitle, MAX(e.seasonNumber) AS max_season FROM episode e JOIN basics b ON b.tconst=e.parentTconst GROUP BY b.primaryTitle ORDER BY max_season DESC NULLS LAST LIMIT 20;","solutionSql":"SELECT b.primaryTitle, MAX(e.seasonNumber) FROM episode e JOIN basics b ON b.tconst=e.parentTconst GROUP BY b.primaryTitle ORDER BY MAX(e.seasonNumber) DESC NULLS LAST LIMIT 20;"},
+  {"id":"p041","title":"High vote-to-rating","description":"Titles with many votes but modest rating (numVotes >= 10000 and rating between 6 and 7).","difficulty":"medium","tables":["ratings","basics"],"starterSql":"SELECT b.primaryTitle, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE r.numVotes>=10000 AND r.averageRating BETWEEN 6 AND 7 ORDER BY r.numVotes DESC LIMIT 50;","solutionSql":"SELECT b.primaryTitle, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE r.numVotes>=10000 AND r.averageRating BETWEEN 6 AND 7 ORDER BY r.numVotes DESC LIMIT 50;"},
+  {"id":"p042","title":"People active lifespan","description":"People with known birth and death years, compute lifespan.","difficulty":"medium","tables":["name_basics"],"starterSql":"SELECT primaryName, (deathYear - birthYear) AS lifespan FROM name_basics WHERE birthYear IS NOT NULL AND deathYear IS NOT NULL ORDER BY lifespan DESC LIMIT 50;","solutionSql":"SELECT primaryName, (deathYear - birthYear) FROM name_basics WHERE birthYear IS NOT NULL AND deathYear IS NOT NULL ORDER BY (deathYear - birthYear) DESC LIMIT 50;"},
+  {"id":"p043","title":"Episode density per season","description":"Average episodes per season for each parent.","difficulty":"hard","tables":["episode"],"starterSql":"SELECT parentTconst, avg_eps FROM (SELECT parentTconst, AVG(c) AS avg_eps FROM (SELECT parentTconst, seasonNumber, COUNT(*) AS c FROM episode WHERE seasonNumber IS NOT NULL GROUP BY parentTconst, seasonNumber) es GROUP BY parentTconst) ea ORDER BY avg_eps DESC LIMIT 20","solutionSql":"SELECT parentTconst, AVG(c) AS avg_eps FROM (SELECT parentTconst, seasonNumber, COUNT(*) AS c FROM episode WHERE seasonNumber IS NOT NULL GROUP BY parentTconst, seasonNumber) es GROUP BY parentTconst ORDER BY AVG(c) DESC LIMIT 20"},
+  {"id":"p044","title":"Recent popular movies","description":"Movies since 2015 with numVotes>=50000 ordered by rating.","difficulty":"medium","tables":["basics","ratings"],"starterSql":"SELECT b.primaryTitle, b.startYear, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.startYear>=2015 AND r.numVotes>=50000 ORDER BY r.averageRating DESC, r.numVotes DESC LIMIT 50;","solutionSql":"SELECT b.primaryTitle, b.startYear, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.startYear>=2015 AND r.numVotes>=50000 ORDER BY r.averageRating DESC, r.numVotes DESC LIMIT 50;"},
+  {"id":"p045","title":"Roles per person","description":"Distinct categories a person has across principals.","difficulty":"medium","tables":["principals","name_basics"],"starterSql":"SELECT n.primaryName, COUNT(DISTINCT p.category) AS roles FROM principals p JOIN name_basics n ON n.nconst=p.nconst GROUP BY n.primaryName ORDER BY roles DESC, n.primaryName LIMIT 50;","solutionSql":"SELECT n.primaryName, COUNT(DISTINCT p.category) FROM principals p JOIN name_basics n ON n.nconst=p.nconst GROUP BY n.primaryName ORDER BY COUNT(DISTINCT p.category) DESC, n.primaryName LIMIT 50;"},
+  {"id":"p046","title":"Top casts size","description":"Titles with largest number of principals rows.","difficulty":"medium","tables":["principals","basics"],"starterSql":"SELECT b.primaryTitle, COUNT(*) AS cast_count FROM principals p JOIN basics b ON b.tconst=p.tconst GROUP BY b.primaryTitle ORDER BY cast_count DESC LIMIT 20;","solutionSql":"SELECT b.primaryTitle, COUNT(*) FROM principals p JOIN basics b ON b.tconst=p.tconst GROUP BY b.primaryTitle ORDER BY COUNT(*) DESC LIMIT 20;"},
+  {"id":"p047","title":"Multi-genre titles","description":"Titles with 3 or more genres.","difficulty":"medium","tables":["basics"],"starterSql":"SELECT primaryTitle, genres FROM basics WHERE array_length(string_to_array(genres, ','),1) >= 3 LIMIT 50;","solutionSql":"SELECT primaryTitle, genres FROM basics WHERE array_length(string_to_array(genres, ','),1) >= 3 LIMIT 50;"},
+  {"id":"p048","title":"Yearly new titles","description":"Count of titles by startYear.","difficulty":"easy","tables":["basics"],"starterSql":"SELECT startYear, COUNT(*) FROM basics GROUP BY startYear ORDER BY startYear LIMIT 100;","solutionSql":"SELECT startYear, COUNT(*) FROM basics GROUP BY startYear ORDER BY startYear LIMIT 100;"},
+  {"id":"p049","title":"Title with most actors","description":"Title with maximum 'actor' or 'actress' principals.","difficulty":"hard","tables":["principals","basics"],"starterSql":"SELECT b.primaryTitle, COUNT(*) AS actors FROM (SELECT tconst FROM principals WHERE category IN ('actor','actress')) a JOIN basics b ON b.tconst=a.tconst GROUP BY b.primaryTitle ORDER BY actors DESC LIMIT 20","solutionSql":"SELECT tconst, COUNT(*) FROM (SELECT tconst FROM principals WHERE category IN ('actor','actress')) a GROUP BY tconst ORDER BY COUNT(*) DESC LIMIT 20"},
+  {"id":"p050","title":"People with single credit","description":"People who appear exactly once in principals.","difficulty":"hard","tables":["principals","name_basics"],"starterSql":"SELECT n.primaryName FROM (SELECT nconst, COUNT(*) AS c FROM principals GROUP BY nconst) c JOIN name_basics n ON n.nconst=c.nconst WHERE c.c=1 ORDER BY n.primaryName LIMIT 50","solutionSql":"SELECT nconst FROM (SELECT nconst, COUNT(*) AS c FROM principals GROUP BY nconst) c WHERE c=1 LIMIT 50"},
+  {
+    "id": "p051",
+    "title": "Top-rated short films",
+    "description": "List top 20 short films (titleType='short') with highest averageRating.",
+    "difficulty": "medium",
+    "tables": ["basics", "ratings"],
+    "starterSql": "SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='short' ORDER BY r.averageRating DESC NULLS LAST LIMIT 20;",
+    "solutionSql": "SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='short' ORDER BY r.averageRating DESC NULLS LAST LIMIT 20;"
+  },
+  {
+    "id": "p052",
+    "title": "Most common runtime length",
+    "description": "Find the runtimeMinutes value that appears most frequently among movies.",
+    "difficulty": "medium",
+    "tables": ["basics"],
+    "starterSql": "SELECT runtimeMinutes, COUNT(*) AS cnt FROM basics WHERE titleType='movie' AND runtimeMinutes IS NOT NULL GROUP BY runtimeMinutes ORDER BY cnt DESC LIMIT 1;",
+    "solutionSql": "SELECT runtimeMinutes, COUNT(*) FROM basics WHERE titleType='movie' AND runtimeMinutes IS NOT NULL GROUP BY runtimeMinutes ORDER BY COUNT(*) DESC LIMIT 1;"
+  },
+  {
+    "id": "p053",
+    "title": "Oldest known movie",
+    "description": "Find the earliest startYear for a titleType='movie' and show its title.",
+    "difficulty": "easy",
+    "tables": ["basics"],
+    "starterSql": "SELECT primaryTitle, startYear FROM basics WHERE titleType='movie' AND startYear IS NOT NULL ORDER BY startYear ASC LIMIT 1;",
+    "solutionSql": "SELECT primaryTitle, startYear FROM basics WHERE titleType='movie' AND startYear IS NOT NULL ORDER BY startYear ASC LIMIT 1;"
+  },
+  {
+    "id": "p054",
+    "title": "Most active directors per decade",
+    "description": "For each decade, find the director with the most directed titles.",
+    "difficulty": "hard",
+    "tables": ["crew", "basics", "name_basics"],
+    "starterSql": "SELECT decade, n.primaryName, c FROM (SELECT (b.startYear/10)*10 AS decade, unnest(string_to_array(cr.directors, ',')) AS nconst, COUNT(*) AS c FROM crew cr JOIN basics b ON b.tconst=cr.tconst WHERE cr.directors IS NOT NULL AND b.startYear IS NOT NULL GROUP BY decade, nconst) d JOIN name_basics n ON n.nconst=d.nconst WHERE (decade, c) IN (SELECT decade, MAX(c) FROM (SELECT (b.startYear/10)*10 AS decade, unnest(string_to_array(cr.directors, ',')) AS nconst, COUNT(*) AS c FROM crew cr JOIN basics b ON b.tconst=cr.tconst WHERE cr.directors IS NOT NULL AND b.startYear IS NOT NULL GROUP BY decade, nconst) x GROUP BY decade) ORDER BY decade;",
+    "solutionSql": "SELECT a.decade, n.primaryName, a.c FROM (SELECT (b.startYear/10)*10 AS decade, unnest(string_to_array(cr.directors, ',')) AS nconst, COUNT(*) AS c FROM crew cr JOIN basics b ON b.tconst=cr.tconst WHERE cr.directors IS NOT NULL AND b.startYear IS NOT NULL GROUP BY decade, nconst) a JOIN name_basics n ON n.nconst=a.nconst WHERE (a.decade, a.c) IN (SELECT decade, MAX(c) FROM (SELECT (b.startYear/10)*10 AS decade, unnest(string_to_array(cr.directors, ',')) AS nconst, COUNT(*) AS c FROM crew cr JOIN basics b ON b.tconst=cr.tconst WHERE cr.directors IS NOT NULL AND b.startYear IS NOT NULL GROUP BY decade, nconst) agg GROUP BY decade) ORDER BY a.decade;"
+  },
+  {
+    "id": "p055",
+    "title": "Titles with no genres",
+    "description": "Find titles where genres field is NULL or empty.",
+    "difficulty": "easy",
+    "tables": ["basics"],
+    "starterSql": "SELECT primaryTitle FROM basics WHERE genres IS NULL OR genres='';",
+    "solutionSql": "SELECT primaryTitle FROM basics WHERE genres IS NULL OR genres='';"
+  },
+  {
+    "id": "p056",
+    "title": "Average episodes per series",
+    "description": "Compute average number of episodes for all series.",
+    "difficulty": "medium",
+    "tables": ["episode"],
+    "starterSql": "SELECT AVG(episodes) AS avg_eps FROM (SELECT parentTconst, COUNT(*) AS episodes FROM episode GROUP BY parentTconst) s;",
+    "solutionSql": "SELECT AVG(COUNT(*)) FROM episode GROUP BY parentTconst;"
+  },
+  {
+    "id": "p057",
+    "title": "Top writers of the 2000s",
+    "description": "Writers who wrote the most titles between 2000 and 2009.",
+    "difficulty": "hard",
+    "tables": ["crew", "basics", "name_basics"],
+    "starterSql": "SELECT n.primaryName, COUNT(*) AS titles FROM (SELECT unnest(string_to_array(c.writers, ',')) AS nconst, b.startYear FROM crew c JOIN basics b ON b.tconst=c.tconst WHERE c.writers IS NOT NULL AND b.startYear BETWEEN 2000 AND 2009) w JOIN name_basics n ON n.nconst=w.nconst GROUP BY n.primaryName ORDER BY titles DESC LIMIT 20;",
+    "solutionSql": "SELECT n.primaryName, COUNT(*) FROM (SELECT unnest(string_to_array(c.writers, ',')) AS nconst, b.startYear FROM crew c JOIN basics b ON b.tconst=c.tconst WHERE c.writers IS NOT NULL AND b.startYear BETWEEN 2000 AND 2009) w JOIN name_basics n ON n.nconst=w.nconst GROUP BY n.primaryName ORDER BY COUNT(*) DESC LIMIT 20;"
+  },
+  {
+    "id": "p058",
+    "title": "Longest-living people",
+    "description": "People with highest (deathYear - birthYear), ignoring nulls.",
+    "difficulty": "easy",
+    "tables": ["name_basics"],
+    "starterSql": "SELECT primaryName, (deathYear - birthYear) AS lifespan FROM name_basics WHERE birthYear IS NOT NULL AND deathYear IS NOT NULL ORDER BY lifespan DESC LIMIT 20;",
+    "solutionSql": "SELECT primaryName, (deathYear - birthYear) FROM name_basics WHERE birthYear IS NOT NULL AND deathYear IS NOT NULL ORDER BY (deathYear - birthYear) DESC LIMIT 20;"
+  },
+  {
+    "id": "p059",
+    "title": "Top genres by total votes",
+    "description": "Sum total numVotes per genre using basics and ratings.",
+    "difficulty": "medium",
+    "tables": ["basics", "ratings"],
+    "starterSql": "SELECT g.genre, SUM(r.numVotes) AS total_votes FROM (SELECT tconst, unnest(string_to_array(genres, ',')) AS genre FROM basics WHERE genres IS NOT NULL) g JOIN ratings r ON r.tconst=g.tconst GROUP BY g.genre ORDER BY total_votes DESC LIMIT 20;",
+    "solutionSql": "SELECT g.genre, SUM(r.numVotes) FROM (SELECT tconst, unnest(string_to_array(genres, ',')) AS genre FROM basics WHERE genres IS NOT NULL) g JOIN ratings r ON r.tconst=g.tconst GROUP BY g.genre ORDER BY SUM(r.numVotes) DESC LIMIT 20;"
+  },
+  {
+    "id": "p060",
+    "title": "Top co-writers pairs",
+    "description": "Pairs of writers who collaborated on most titles.",
+    "difficulty": "hard",
+    "tables": ["crew", "name_basics"],
+    "starterSql": "SELECT n1.primaryName AS writer1, n2.primaryName AS writer2, COUNT(*) AS together FROM (SELECT tconst, unnest(string_to_array(writers, ',')) AS nconst FROM crew WHERE writers IS NOT NULL) wa JOIN (SELECT tconst, unnest(string_to_array(writers, ',')) AS nconst FROM crew WHERE writers IS NOT NULL) wb ON wa.tconst=wb.tconst AND wa.nconst<wb.nconst JOIN name_basics n1 ON n1.nconst=wa.nconst JOIN name_basics n2 ON n2.nconst=wb.nconst GROUP BY writer1, writer2 ORDER BY together DESC LIMIT 20;",
+    "solutionSql": "SELECT wa.nconst AS writer1, wb.nconst AS writer2, COUNT(*) FROM (SELECT tconst, unnest(string_to_array(writers, ',')) AS nconst FROM crew WHERE writers IS NOT NULL) wa JOIN (SELECT tconst, unnest(string_to_array(writers, ',')) AS nconst FROM crew WHERE writers IS NOT NULL) wb ON wa.tconst=wb.tconst AND wa.nconst<wb.nconst GROUP BY wa.nconst, wb.nconst ORDER BY COUNT(*) DESC LIMIT 20;"
+  },
+  {
+    "id": "p061",
+    "title": "Movies per decade",
+    "description": "Count number of movies released per decade.",
+    "difficulty": "easy",
+    "tables": ["basics"],
+    "starterSql": "SELECT (startYear/10)*10 AS decade, COUNT(*) AS movies FROM basics WHERE titleType='movie' AND startYear IS NOT NULL GROUP BY decade ORDER BY decade;",
+    "solutionSql": "SELECT (startYear/10)*10, COUNT(*) FROM basics WHERE titleType='movie' AND startYear IS NOT NULL GROUP BY (startYear/10)*10 ORDER BY (startYear/10)*10;"
+  },
+  {
+    "id": "p062",
+    "title": "Top-rated TV series",
+    "description": "Find 20 highest-rated titleType='tvSeries'.",
+    "difficulty": "medium",
+    "tables": ["basics", "ratings"],
+    "starterSql": "SELECT b.primaryTitle, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='tvSeries' ORDER BY r.averageRating DESC, r.numVotes DESC LIMIT 20;",
+    "solutionSql": "SELECT b.primaryTitle, r.averageRating, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='tvSeries' ORDER BY r.averageRating DESC, r.numVotes DESC LIMIT 20;"
+  },
+  {
+    "id": "p063",
+    "title": "People with many professions",
+    "description": "Count how many people have 3 or more professions in primaryProfession.",
+    "difficulty": "medium",
+    "tables": ["name_basics"],
+    "starterSql": "SELECT COUNT(*) AS cnt FROM name_basics WHERE array_length(string_to_array(primaryProfession, ','),1) >= 3;",
+    "solutionSql": "SELECT COUNT(*) FROM name_basics WHERE array_length(string_to_array(primaryProfession, ','),1) >= 3;"
+  },
+  {
+    "id": "p064",
+    "title": "Longest English titles",
+    "description": "English akas titles with longest character length.",
+    "difficulty": "medium",
+    "tables": ["akas"],
+    "starterSql": "SELECT titleId, title, LENGTH(title) AS len FROM akas WHERE language='en' ORDER BY len DESC LIMIT 20;",
+    "solutionSql": "SELECT titleId, title FROM akas WHERE language='en' ORDER BY LENGTH(title) DESC LIMIT 20;"
+  },
+  {
+    "id": "p065",
+    "title": "Average votes per genre per decade",
+    "description": "Compute average numVotes for each genre and decade of startYear.",
+    "difficulty": "hard",
+    "tables": ["basics", "ratings"],
+    "starterSql": "SELECT (b.startYear/10)*10 AS decade, g.genre, AVG(r.numVotes) AS avg_votes FROM (SELECT tconst, unnest(string_to_array(genres, ',')) AS genre FROM basics WHERE genres IS NOT NULL) g JOIN basics b ON b.tconst=g.tconst JOIN ratings r ON r.tconst=b.tconst WHERE b.startYear IS NOT NULL GROUP BY decade, g.genre ORDER BY decade, avg_votes DESC;",
+    "solutionSql": "SELECT (b.startYear/10)*10 AS decade, g.genre, AVG(r.numVotes) FROM (SELECT tconst, unnest(string_to_array(genres, ',')) AS genre FROM basics WHERE genres IS NOT NULL) g JOIN basics b ON b.tconst=g.tconst JOIN ratings r ON r.tconst=b.tconst WHERE b.startYear IS NOT NULL GROUP BY (b.startYear/10)*10, g.genre ORDER BY (b.startYear/10)*10, AVG(r.numVotes) DESC;"
+  },
+  {
+"id": "p066",
+"title": "Top 50 recent movies by votes",
+"description": "List 50 movies (titleType='movie') released since 2018 ordered by numVotes descending.",
+"difficulty": "easy",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, b.startYear, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.startYear>=2018 ORDER BY r.numVotes DESC LIMIT 50;",
+"solutionSql": "SELECT b.primaryTitle, b.startYear, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.startYear>=2018 ORDER BY r.numVotes DESC LIMIT 50;"
+},
+{
+"id": "p067",
+"title": "Most common actor birth years",
+"description": "Top 20 birthYear values among people listed as actor or actress in principals.",
+"difficulty": "medium",
+"tables": ["principals", "name_basics"],
+"starterSql": "SELECT n.birthYear, COUNT() AS cnt FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND n.birthYear IS NOT NULL GROUP BY n.birthYear ORDER BY cnt DESC LIMIT 20;",
+"solutionSql": "SELECT n.birthYear, COUNT() FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND n.birthYear IS NOT NULL GROUP BY n.birthYear ORDER BY COUNT() DESC LIMIT 20;"
+},
+{
+"id": "p068",
+"title": "Titles with both director and writer",
+"description": "Find titles where at least one person appears in both directors and writers lists.",
+"difficulty": "hard",
+"tables": ["crew", "basics"],
+"starterSql": "SELECT b.primaryTitle FROM crew c JOIN basics b ON b.tconst=c.tconst WHERE c.directors IS NOT NULL AND c.writers IS NOT NULL AND EXISTS (SELECT 1 FROM unnest(string_to_array(c.directors,',')) d WHERE d = ANY(string_to_array(c.writers,','))) LIMIT 50;",
+"solutionSql": "SELECT DISTINCT b.primaryTitle FROM crew c JOIN basics b ON b.tconst=c.tconst WHERE c.directors IS NOT NULL AND c.writers IS NOT NULL AND EXISTS (SELECT 1 FROM unnest(string_to_array(c.directors,',')) d JOIN unnest(string_to_array(c.writers,',')) w ON d = w) LIMIT 50;"
+},
+{
+"id": "p069",
+"title": "Top-rated animated movies",
+"description": "Top 30 movies with genre 'Animation' sorted by averageRating.",
+"difficulty": "medium",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.genres LIKE '%Animation%' ORDER BY r.averageRating DESC LIMIT 30;",
+"solutionSql": "SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.genres IS NOT NULL AND POSITION('Animation' IN b.genres) > 0 ORDER BY r.averageRating DESC LIMIT 30;"
+},
+{
+"id": "p070",
+"title": "Most translated titles",
+"description": "Titles with the largest number of akas entries (most alternate titles).",
+"difficulty": "medium",
+"tables": ["akas"],
+"starterSql": "SELECT titleId, COUNT() AS aka_count FROM akas GROUP BY titleId ORDER BY aka_count DESC LIMIT 20;",
+"solutionSql": "SELECT titleId, COUNT() FROM akas GROUP BY titleId ORDER BY COUNT() DESC LIMIT 20;"
+},
+{
+"id": "p071",
+"title": "Directors who also acted",
+"description": "People who appear both as director (in crew.directors) and as actor/actress (in principals).",
+"difficulty": "hard",
+"tables": ["crew", "principals", "name_basics"],
+"starterSql": "SELECT DISTINCT n.primaryName FROM (SELECT unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL) d JOIN principals p ON p.nconst=d.nconst JOIN name_basics n ON n.nconst=d.nconst WHERE p.category IN ('actor','actress') LIMIT 50;",
+"solutionSql": "SELECT DISTINCT n.primaryName FROM (SELECT unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL) d JOIN principals p ON p.nconst=d.nconst JOIN name_basics n ON n.nconst=d.nconst WHERE p.category IN ('actor','actress');"
+},
+{
+"id": "p072",
+"title": "Most prolific people overall",
+"description": "People with the highest total number of appearances across principals, crew (as director/writer), and name_basics knownForTitles counts (approx).",
+"difficulty": "hard",
+"tables": ["principals", "crew", "name_basics"],
+"starterSql": "SELECT n.primaryName, (COALESCE(p.cnt,0) + COALESCE(c.cnt,0) + COALESCE(k.kf,0)) AS total_appearances FROM name_basics n LEFT JOIN (SELECT nconst, COUNT() AS cnt FROM principals GROUP BY nconst) p ON p.nconst=n.nconst LEFT JOIN (SELECT unnest(string_to_array(directors||','||writers,',')) AS nconst, COUNT() AS cnt FROM crew GROUP BY unnest(string_to_array(directors||','||writers,','))) c ON c.nconst=n.nconst LEFT JOIN (SELECT nconst, CASE WHEN knownForTitles IS NULL OR knownForTitles='' THEN 0 ELSE array_length(string_to_array(knownForTitles,','),1) END AS kf FROM name_basics) k ON k.nconst=n.nconst ORDER BY total_appearances DESC LIMIT 20;",
+"solutionSql": "SELECT n.primaryName, (COALESCE(p.cnt,0) + COALESCE(c.cnt,0) + COALESCE(k.kf,0)) AS total_appearances FROM name_basics n LEFT JOIN (SELECT nconst, COUNT() AS cnt FROM principals GROUP BY nconst) p ON p.nconst=n.nconst LEFT JOIN (SELECT nconst, COUNT() AS cnt FROM (SELECT unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL UNION ALL SELECT unnest(string_to_array(writers,',')) AS nconst FROM crew WHERE writers IS NOT NULL) x GROUP BY nconst) c ON c.nconst=n.nconst LEFT JOIN (SELECT nconst, CASE WHEN knownForTitles IS NULL OR knownForTitles='' THEN 0 ELSE array_length(string_to_array(knownForTitles,','),1) END AS kf FROM name_basics) k ON k.nconst=n.nconst ORDER BY total_appearances DESC LIMIT 20;"
+},
+{
+"id": "p073",
+"title": "Top 10 runtime variance by genre",
+"description": "Genres with the largest variance in runtimeMinutes (need at least 50 titles).",
+"difficulty": "hard",
+"tables": ["basics"],
+"starterSql": "SELECT genre, VAR_POP(runtimeMinutes) AS var_runtime FROM (SELECT unnest(string_to_array(genres,',')) AS genre, runtimeMinutes FROM basics WHERE runtimeMinutes IS NOT NULL) g GROUP BY genre HAVING COUNT()>=50 ORDER BY var_runtime DESC LIMIT 10;",
+"solutionSql": "SELECT genre, VAR_POP(runtimeMinutes) FROM (SELECT unnest(string_to_array(genres,',')) AS genre, runtimeMinutes FROM basics WHERE runtimeMinutes IS NOT NULL) g GROUP BY genre HAVING COUNT()>=50 ORDER BY VAR_POP(runtimeMinutes) DESC LIMIT 10;"
+},
+{
+"id": "p074",
+"title": "Most consistent high-rated directors",
+"description": "Directors whose directed titles (min 5) have the highest averageRating and low standard deviation (score both avg desc and stddev asc).",
+"difficulty": "hard",
+"tables": ["crew", "basics", "ratings", "name_basics"],
+"starterSql": "SELECT n.primaryName, AVG(r.averageRating) AS avg_rating, STDDEV_POP(r.averageRating) AS sd FROM (SELECT tconst, unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL) d JOIN ratings r ON r.tconst=d.tconst JOIN name_basics n ON n.nconst=d.nconst GROUP BY n.primaryName HAVING COUNT()>=5 ORDER BY avg_rating DESC, sd ASC LIMIT 20;",
+"solutionSql": "SELECT n.primaryName, AVG(r.averageRating), STDDEV_POP(r.averageRating) FROM (SELECT tconst, unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL) d JOIN ratings r ON r.tconst=d.tconst JOIN name_basics n ON n.nconst=d.nconst GROUP BY n.primaryName HAVING COUNT()>=5 ORDER BY AVG(r.averageRating) DESC, STDDEV_POP(r.averageRating) ASC LIMIT 20;"
+},
+{
+"id": "p075",
+"title": "Top 20 one-word titles",
+"description": "Titles (primaryTitle) that are a single word, ordered by numVotes descending.",
+"difficulty": "easy",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.primaryTitle NOT LIKE '% %' ORDER BY r.numVotes DESC LIMIT 20;",
+"solutionSql": "SELECT b.primaryTitle, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.primaryTitle NOT LIKE '% %' ORDER BY r.numVotes DESC LIMIT 20;"
+},
+{
+"id": "p076",
+"title": "Top 10 longest-known series",
+"description": "Series (titleType='tvSeries') with the earliest startYear and still have episodes in dataset (i.e., appear as parentTconst in episode).",
+"difficulty": "medium",
+"tables": ["basics", "episode"],
+"starterSql": "SELECT b.primaryTitle, b.startYear FROM basics b JOIN episode e ON e.parentTconst=b.tconst WHERE b.titleType='tvSeries' AND b.startYear IS NOT NULL GROUP BY b.primaryTitle, b.startYear ORDER BY b.startYear ASC LIMIT 10;",
+"solutionSql": "SELECT b.primaryTitle, b.startYear FROM basics b WHERE b.titleType='tvSeries' AND b.startYear IS NOT NULL AND b.tconst IN (SELECT DISTINCT parentTconst FROM episode) ORDER BY b.startYear ASC LIMIT 10;"
+},
+{
+"id": "p077",
+"title": "Titles with most null fields",
+"description": "Find 20 titles with the largest number of NULL columns among a selected set (runtimeMinutes, genres, startYear, titleType, isAdult).",
+"difficulty": "medium",
+"tables": ["basics"],
+"starterSql": "SELECT tconst, primaryTitle, (CASE WHEN runtimeMinutes IS NULL THEN 1 ELSE 0 END + CASE WHEN genres IS NULL OR genres='' THEN 1 ELSE 0 END + CASE WHEN startYear IS NULL THEN 1 ELSE 0 END + CASE WHEN titleType IS NULL THEN 1 ELSE 0 END + CASE WHEN isAdult IS NULL THEN 1 ELSE 0 END) AS null_count FROM basics ORDER BY null_count DESC LIMIT 20;",
+"solutionSql": "SELECT tconst, primaryTitle, ((runtimeMinutes IS NULL)::int + (genres IS NULL OR genres=''::text)::int + (startYear IS NULL)::int + (titleType IS NULL)::int + (isAdult IS NULL)::int) AS null_count FROM basics ORDER BY null_count DESC LIMIT 20;"
+},
+{
+"id": "p078",
+"title": "Actors with the longest career span",
+"description": "Actors/actresses whose earliest and latest credited startYear difference is largest (require at least 2 credits).",
+"difficulty": "hard",
+"tables": ["principals", "basics", "name_basics"],
+"starterSql": "SELECT n.primaryName, (MAX(b.startYear) - MIN(b.startYear)) AS span FROM principals p JOIN basics b ON b.tconst=p.tconst JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND b.startYear IS NOT NULL GROUP BY n.primaryName HAVING COUNT()>=2 ORDER BY span DESC LIMIT 20;",
+"solutionSql": "SELECT n.primaryName, (MAX(b.startYear) - MIN(b.startYear)) FROM principals p JOIN basics b ON b.tconst=p.tconst JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND b.startYear IS NOT NULL GROUP BY n.primaryName HAVING COUNT()>=2 ORDER BY (MAX(b.startYear) - MIN(b.startYear)) DESC LIMIT 20;"
+},
+{
+"id": "p079",
+"title": "Top 25 parents by average episode rating",
+"description": "Parent titles (parentTconst) whose episodes have the highest average rating (join to ratings via episode tconst).",
+"difficulty": "medium",
+"tables": ["episode", "ratings", "basics"],
+"starterSql": "SELECT e.parentTconst, AVG(r.averageRating) AS avg_ep_rating FROM episode e JOIN ratings r ON r.tconst=e.tconst GROUP BY e.parentTconst ORDER BY avg_ep_rating DESC LIMIT 25;",
+"solutionSql": "SELECT e.parentTconst, AVG(r.averageRating) FROM episode e JOIN ratings r ON r.tconst=e.tconst GROUP BY e.parentTconst ORDER BY AVG(r.averageRating) DESC LIMIT 25;"
+},
+{
+"id": "p080",
+"title": "Most common titleType by decade",
+"description": "For each decade, find the most frequent titleType (e.g., movie, tvSeries).",
+"difficulty": "hard",
+"tables": ["basics"],
+"starterSql": "WITH dec AS (SELECT (startYear/10)10 AS decade, titleType FROM basics WHERE startYear IS NOT NULL) SELECT d.decade, d.titleType, COUNT() AS cnt FROM dec d GROUP BY d.decade, d.titleType ORDER BY d.decade, cnt DESC;",
+"solutionSql": "SELECT decade, titleType FROM (SELECT (startYear/10)10 AS decade, titleType, ROW_NUMBER() OVER (PARTITION BY (startYear/10)10 ORDER BY COUNT() DESC) AS rn FROM basics WHERE startYear IS NOT NULL GROUP BY (startYear/10)10, titleType) t WHERE rn=1 ORDER BY decade;"
+},
+{
+"id": "p081",
+"title": "Titles with duplicate primaryTitle",
+"description": "Find titles sharing the same primaryTitle (duplicate names) and show counts, ordered by highest duplicates.",
+"difficulty": "medium",
+"tables": ["basics"],
+"starterSql": "SELECT primaryTitle, COUNT() AS cnt FROM basics GROUP BY primaryTitle HAVING COUNT()>1 ORDER BY cnt DESC LIMIT 50;",
+"solutionSql": "SELECT primaryTitle, COUNT() FROM basics GROUP BY primaryTitle HAVING COUNT()>1 ORDER BY COUNT() DESC LIMIT 50;"
+},
+{
+"id": "p082",
+"title": "Most common professions",
+"description": "List top 30 primaryProfession entries (split comma-separated) across name_basics.",
+"difficulty": "medium",
+"tables": ["name_basics"],
+"starterSql": "SELECT prof, COUNT() AS cnt FROM (SELECT unnest(string_to_array(primaryProfession,',')) AS prof FROM name_basics WHERE primaryProfession IS NOT NULL) p GROUP BY prof ORDER BY cnt DESC LIMIT 30;",
+"solutionSql": "SELECT prof, COUNT() FROM (SELECT unnest(string_to_array(primaryProfession,',')) AS prof FROM name_basics WHERE primaryProfession IS NOT NULL) p GROUP BY prof ORDER BY COUNT() DESC LIMIT 30;"
+},
+{
+"id": "p083",
+"title": "Top 20 tvEpisodes by rating",
+"description": "List top 20 episodes (episode table) ordered by their rating.",
+"difficulty": "easy",
+"tables": ["episode", "ratings"],
+"starterSql": "SELECT e.tconst, r.averageRating FROM episode e JOIN ratings r ON r.tconst=e.tconst ORDER BY r.averageRating DESC LIMIT 20;",
+"solutionSql": "SELECT e.tconst, r.averageRating FROM episode e JOIN ratings r ON r.tconst=e.tconst ORDER BY r.averageRating DESC LIMIT 20;"
+},
+{
+"id": "p084",
+"title": "Top 30 people by average rating of their knownForTitles",
+"description": "Compute average rating of titles listed in knownForTitles for each person (requires splitting knownForTitles).",
+"difficulty": "hard",
+"tables": ["name_basics", "ratings"],
+"starterSql": "WITH kf AS (SELECT nconst, unnest(string_to_array(knownForTitles,',')) AS tconst FROM name_basics WHERE knownForTitles IS NOT NULL) SELECT n.primaryName, AVG(r.averageRating) AS avg_known_for FROM kf JOIN ratings r ON r.tconst=kf.tconst JOIN name_basics n ON n.nconst=kf.nconst GROUP BY n.primaryName ORDER BY avg_known_for DESC LIMIT 30;",
+"solutionSql": "WITH kf AS (SELECT nconst, unnest(string_to_array(knownForTitles,',')) AS tconst FROM name_basics WHERE knownForTitles IS NOT NULL) SELECT n.primaryName, AVG(r.averageRating) FROM kf JOIN ratings r ON r.tconst=kf.tconst JOIN name_basics n ON n.nconst=kf.nconst GROUP BY n.primaryName ORDER BY AVG(r.averageRating) DESC LIMIT 30;"
+},
+{
+"id": "p085",
+"title": "Top 25 countries by English akas",
+"description": "Regions with most English ('en') akas entries.",
+"difficulty": "easy",
+"tables": ["akas"],
+"starterSql": "SELECT region, COUNT() AS cnt FROM akas WHERE language='en' GROUP BY region ORDER BY cnt DESC LIMIT 25;",
+"solutionSql": "SELECT region, COUNT() FROM akas WHERE language='en' GROUP BY region ORDER BY COUNT() DESC LIMIT 25;"
+},
+{
+"id": "p086",
+"title": "Titles with high vote-to-rating ratio",
+"description": "Find titles with numVotes >= 10000 and averageRating < 6.0 (popular but low-rated).",
+"difficulty": "medium",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, r.numVotes, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE r.numVotes>=10000 AND r.averageRating<6 ORDER BY r.numVotes DESC LIMIT 50;",
+"solutionSql": "SELECT b.primaryTitle, r.numVotes, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE r.numVotes>=10000 AND r.averageRating<6 ORDER BY r.numVotes DESC LIMIT 50;"
+},
+{
+"id": "p087",
+"title": "Actors with most lead roles",
+"description": "Count appearances where principals.category IN ('actor','actress') and principals.job/characters indicate lead (heuristic: characters not null and position = 1 if available), use credits frequency as proxy.",
+"difficulty": "hard",
+"tables": ["principals", "name_basics"],
+"starterSql": "SELECT n.primaryName, COUNT() AS lead_count FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND (p.characters IS NOT NULL OR p.job IS NOT NULL) GROUP BY n.primaryName ORDER BY lead_count DESC LIMIT 20;",
+"solutionSql": "SELECT n.primaryName, COUNT() FROM principals p JOIN name_basics n ON n.nconst=p.nconst WHERE p.category IN ('actor','actress') AND (p.characters IS NOT NULL OR p.job IS NOT NULL) GROUP BY n.primaryName ORDER BY COUNT() DESC LIMIT 20;"
+},
+{
+"id": "p088",
+"title": "Average rating per language",
+"description": "Compute average rating of titles grouped by the most common language recorded in akas (join akas -> basics -> ratings).",
+"difficulty": "hard",
+"tables": ["akas", "basics", "ratings"],
+"starterSql": "WITH lang AS (SELECT titleId, MODE() WITHIN GROUP (ORDER BY language) AS lang FROM akas WHERE language IS NOT NULL GROUP BY titleId) SELECT l.lang, AVG(r.averageRating) FROM lang l JOIN basics b ON b.tconst=l.titleId JOIN ratings r ON r.tconst=b.tconst GROUP BY l.lang ORDER BY AVG(r.averageRating) DESC LIMIT 20;",
+"solutionSql": "WITH lang_pref AS (SELECT titleId, (SELECT language FROM akas a2 WHERE a2.titleId=a.titleId AND language IS NOT NULL LIMIT 1) AS language FROM (SELECT DISTINCT titleId FROM akas) a) SELECT a.language, AVG(r.averageRating) FROM lang_pref a JOIN basics b ON b.tconst=a.titleId JOIN ratings r ON r.tconst=b.tconst WHERE a.language IS NOT NULL GROUP BY a.language ORDER BY AVG(r.averageRating) DESC LIMIT 20;"
+},
+{
+"id": "p089",
+"title": "Top 20 single-genre titles",
+"description": "Titles that have exactly one genre listed, ranked by averageRating.",
+"difficulty": "medium",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.genres IS NOT NULL AND array_length(string_to_array(b.genres,','),1)=1 ORDER BY r.averageRating DESC LIMIT 20;",
+"solutionSql": "SELECT b.primaryTitle, r.averageRating FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.genres IS NOT NULL AND array_length(string_to_array(b.genres,','),1)=1 ORDER BY r.averageRating DESC LIMIT 20;"
+},
+{
+"id": "p090",
+"title": "Top directors by average votes",
+"description": "Directors whose directed titles (min 3) have the highest average numVotes.",
+"difficulty": "hard",
+"tables": ["crew", "ratings", "name_basics"],
+"starterSql": "SELECT n.primaryName, AVG(r.numVotes) AS avg_votes FROM (SELECT tconst, unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL) d JOIN ratings r ON r.tconst=d.tconst JOIN name_basics n ON n.nconst=d.nconst GROUP BY n.primaryName HAVING COUNT()>=3 ORDER BY avg_votes DESC LIMIT 20;",
+"solutionSql": "SELECT n.primaryName, AVG(r.numVotes) FROM (SELECT tconst, unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL) d JOIN ratings r ON r.tconst=d.tconst JOIN name_basics n ON n.nconst=d.nconst GROUP BY n.primaryName HAVING COUNT()>=3 ORDER BY AVG(r.numVotes) DESC LIMIT 20;"
+},
+{
+"id": "p091",
+"title": "Titles with highest ratio of votes to runtime",
+"description": "Find titles with numVotes/runtimeMinutes ratio highest (exclude runtimeMinutes=0/null).",
+"difficulty": "medium",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, r.numVotes / NULLIF(b.runtimeMinutes,0) AS votes_per_min FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.runtimeMinutes IS NOT NULL AND b.runtimeMinutes>0 ORDER BY votes_per_min DESC LIMIT 50;",
+"solutionSql": "SELECT b.primaryTitle, r.numVotes / NULLIF(b.runtimeMinutes,0) FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.runtimeMinutes IS NOT NULL AND b.runtimeMinutes>0 ORDER BY (r.numVotes / NULLIF(b.runtimeMinutes,0)) DESC LIMIT 50;"
+},
+{
+"id": "p092",
+"title": "Top 30 one-character titles",
+"description": "Titles whose primaryTitle is exactly one character long (LENGTH=1), ordered by numVotes.",
+"difficulty": "easy",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE LENGTH(b.primaryTitle)=1 ORDER BY r.numVotes DESC LIMIT 30;",
+"solutionSql": "SELECT b.primaryTitle, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE LENGTH(b.primaryTitle)=1 ORDER BY r.numVotes DESC LIMIT 30;"
+},
+{
+"id": "p093",
+"title": "Top 50 recent high-rated movies by decade",
+"description": "For movies released in each decade since 1980, list the top movie by averageRating (one per decade).",
+"difficulty": "hard",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT decade, primaryTitle, averageRating FROM (SELECT (b.startYear/10)10 AS decade, b.primaryTitle, r.averageRating, ROW_NUMBER() OVER (PARTITION BY (b.startYear/10)10 ORDER BY r.averageRating DESC, r.numVotes DESC) AS rn FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.startYear>=1980) t WHERE rn=1 ORDER BY decade;",
+"solutionSql": "SELECT decade, primaryTitle, averageRating FROM (SELECT (b.startYear/10)10 AS decade, b.primaryTitle, r.averageRating, ROW_NUMBER() OVER (PARTITION BY (b.startYear/10)10 ORDER BY r.averageRating DESC, r.numVotes DESC) AS rn FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.titleType='movie' AND b.startYear>=1980 AND b.startYear IS NOT NULL) t WHERE rn=1 ORDER BY decade;"
+},
+{
+"id": "p094",
+"title": "Top 20 titles by title length",
+"description": "Titles with the largest number of characters in primaryTitle (show top 20).",
+"difficulty": "easy",
+"tables": ["basics"],
+"starterSql": "SELECT primaryTitle, LENGTH(primaryTitle) AS len FROM basics ORDER BY len DESC LIMIT 20;",
+"solutionSql": "SELECT primaryTitle, LENGTH(primaryTitle) FROM basics ORDER BY LENGTH(primaryTitle) DESC LIMIT 20;"
+},
+{
+"id": "p095",
+"title": "People with credits in multiple roles",
+"description": "Find people who appear in principals and also listed in crew (as director or writer).",
+"difficulty": "medium",
+"tables": ["principals", "crew", "name_basics"],
+"starterSql": "SELECT DISTINCT n.primaryName FROM name_basics n JOIN principals p ON p.nconst=n.nconst JOIN (SELECT unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL UNION SELECT unnest(string_to_array(writers,',')) AS nconst FROM crew WHERE writers IS NOT NULL) c ON c.nconst=n.nconst LIMIT 50;",
+"solutionSql": "SELECT DISTINCT n.primaryName FROM name_basics n JOIN principals p ON p.nconst=n.nconst JOIN (SELECT unnest(string_to_array(directors,',')) AS nconst FROM crew WHERE directors IS NOT NULL UNION ALL SELECT unnest(string_to_array(writers,',')) AS nconst FROM crew WHERE writers IS NOT NULL) c ON c.nconst=n.nconst;"
+},
+{
+"id": "p096",
+"title": "Top 25 single-year breakout titles",
+"description": "Titles that have the biggest jump in numVotes between two consecutive years nearby (approximate: compare numVotes to average of titles that year). This is a heuristic exercise using per-year averages.",
+"difficulty": "hard",
+"tables": ["basics", "ratings"],
+"starterSql": "WITH by_year AS (SELECT b.startYear, AVG(r.numVotes) AS avg_votes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.startYear IS NOT NULL GROUP BY b.startYear) SELECT b.primaryTitle, b.startYear, r.numVotes, by_year.avg_votes FROM basics b JOIN ratings r ON r.tconst=b.tconst JOIN by_year ON by_year.startYear=b.startYear WHERE b.startYear IS NOT NULL ORDER BY (r.numVotes - by_year.avg_votes) DESC LIMIT 25;",
+"solutionSql": "WITH by_year AS (SELECT b.startYear, AVG(r.numVotes) AS avg_votes FROM basics b JOIN ratings r ON r.tconst=b.tconst WHERE b.startYear IS NOT NULL GROUP BY b.startYear) SELECT b.primaryTitle, b.startYear, r.numVotes, by_year.avg_votes FROM basics b JOIN ratings r ON r.tconst=b.tconst JOIN by_year ON by_year.startYear=b.startYear WHERE b.startYear IS NOT NULL ORDER BY (r.numVotes - by_year.avg_votes) DESC LIMIT 25;"
+},
+{
+"id": "p097",
+"title": "Top 30 movies with unique genre combinations",
+"description": "Identify movies whose exact genre combination is rare (appear < 3 times) and rank them by numVotes.",
+"difficulty": "medium",
+"tables": ["basics", "ratings"],
+"starterSql": "WITH gcount AS (SELECT genres, COUNT() AS cnt FROM basics WHERE titleType='movie' AND genres IS NOT NULL GROUP BY genres) SELECT b.primaryTitle, b.genres, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst JOIN gcount g ON g.genres=b.genres WHERE b.titleType='movie' AND g.cnt<3 ORDER BY r.numVotes DESC LIMIT 30;",
+"solutionSql": "WITH gcount AS (SELECT genres, COUNT() AS cnt FROM basics WHERE titleType='movie' AND genres IS NOT NULL GROUP BY genres) SELECT b.primaryTitle, b.genres, r.numVotes FROM basics b JOIN ratings r ON r.tconst=b.tconst JOIN gcount g ON g.genres=b.genres WHERE b.titleType='movie' AND g.cnt<3 ORDER BY r.numVotes DESC LIMIT 30;"
+},
+{
+"id": "p098",
+"title": "Top 25 titles by director collaborations",
+"description": "Titles with the largest number of distinct directors credited.",
+"difficulty": "medium",
+"tables": ["crew", "basics"],
+"starterSql": "SELECT c.tconst, b.primaryTitle, COUNT(DISTINCT unnest(string_to_array(c.directors,','))) AS directors_count FROM crew c JOIN basics b ON b.tconst=c.tconst WHERE c.directors IS NOT NULL GROUP BY c.tconst, b.primaryTitle ORDER BY directors_count DESC LIMIT 25;",
+"solutionSql": "SELECT c.tconst, b.primaryTitle, (SELECT COUNT() FROM (SELECT DISTINCT unnest(string_to_array(c.directors,',')) AS d) x) AS directors_count FROM crew c JOIN basics b ON b.tconst=c.tconst WHERE c.directors IS NOT NULL GROUP BY c.tconst, b.primaryTitle ORDER BY directors_count DESC LIMIT 25;"
+},
+{
+"id": "p099",
+"title": "Top 50 titles by combined rating score",
+"description": "Create a combined score = averageRating * LOG(1 + numVotes) and list top 50 titles by that score.",
+"difficulty": "medium",
+"tables": ["basics", "ratings"],
+"starterSql": "SELECT b.primaryTitle, r.averageRating, r.numVotes, (r.averageRating * LN(1 + r.numVotes)) AS score FROM basics b JOIN ratings r ON r.tconst=b.tconst ORDER BY score DESC LIMIT 50;",
+"solutionSql": "SELECT b.primaryTitle, r.averageRating, r.numVotes, (r.averageRating * LN(1 + r.numVotes)) FROM basics b JOIN ratings r ON r.tconst=b.tconst ORDER BY (r.averageRating * LN(1 + r.numVotes)) DESC LIMIT 50;"
+},
+{
+"id": "p100",
+"title": "Top 20 series by episode density",
+"description": "Find series (parentTconst) with the highest average number of episodes per season (requires seasonNumber not null).",
+"difficulty": "hard",
+"tables": ["episode", "basics"],
+"starterSql": "SELECT e.parentTconst, AVG(c) AS avg_eps_per_season FROM (SELECT parentTconst, seasonNumber, COUNT() AS c FROM episode WHERE seasonNumber IS NOT NULL GROUP BY parentTconst, seasonNumber) e GROUP BY e.parentTconst ORDER BY avg_eps_per_season DESC LIMIT 20;",
+"solutionSql": "SELECT parentTconst, AVG(c) FROM (SELECT parentTconst, seasonNumber, COUNT(*) AS c FROM episode WHERE seasonNumber IS NOT NULL GROUP BY parentTconst, seasonNumber) es GROUP BY parentTconst ORDER BY AVG(c) DESC LIMIT 20;"
+}
+
+]
+
