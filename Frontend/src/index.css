@@ -8,7 +8,7 @@
 }
 
 body {
-  @apply bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100;
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100;
   background-image:
     radial-gradient(20rem 20rem at 0% 0%, rgba(56,189,248,0.08), transparent 60%),
     radial-gradient(16rem 16rem at 100% 0%, rgba(99,102,241,0.08), transparent 60%),

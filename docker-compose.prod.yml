@@ -35,3 +35,17 @@ services:
       - backend
     ports:
       - "8080:80"
+
+  suggestor:
+    image: 1rptr1/1rptr1:suggestor
+    container_name: imdb_suggestor
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: imdb
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "3010:3010"

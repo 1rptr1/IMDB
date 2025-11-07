@@ -32,10 +32,29 @@ services:
     ports:
       - "3001:3001"
 
+  suggestor:
+    build:
+      context: ./BackendSuggestor
+      dockerfile: Dockerfile
+    container_name: imdb_suggestor
+    environment:
+      PORT: 3010
+      QUERY_TIMEOUT_SECONDS: 10
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: imdb
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      - db
+    restart: on-failure
+    ports:
+      - "3010:3010"
+
   frontend:
     build:
       context: ./Frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile 
     container_name: imdb_frontend
     depends_on:
       - backend
