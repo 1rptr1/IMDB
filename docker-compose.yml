@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   db:
-    image: postgres:16-alpine
+    image: 1rptr1/1rptr1:db
     container_name: imdb_db
     environment:
       POSTGRES_DB: imdb
@@ -16,7 +16,7 @@ services:
 
   backend:
     build:
-      context: ./Backend
+      context: 1rptr1/1rptr1:backend
       dockerfile: Dockerfile
     container_name: imdb_backend
     environment:
@@ -53,7 +53,7 @@ services:
 
   frontend:
     build:
-      context: ./Frontend
+      context: 1rptr1/1rptr1:frontend
       dockerfile: Dockerfile 
     container_name: imdb_frontend
     depends_on:
