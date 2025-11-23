@@ -49,9 +49,8 @@ From the project root `IMDB`:
   docker compose -f docker-compose-hub.yml down -v
   rm -rf data
   mkdir data
-  chmod -R 777 data
   
-  # Deploy using Docker Hub images
+  # Deploy using Docker Hub images (permissions set automatically)
   docker compose -f docker-compose-hub.yml up -d
   ```
 - **Tear down**
@@ -168,9 +167,8 @@ cd IMDB
 docker compose -f docker-compose-hub.yml down -v
 rm -rf data
 mkdir data
-chmod -R 777 data
 
-# Deploy using Docker Hub images
+# Deploy using Docker Hub images (permissions set automatically)
 docker compose -f docker-compose-hub.yml up -d
 
 # Check status
@@ -340,6 +338,7 @@ docker compose -f docker-compose-hub.yml up -d
 ## Notes
 - Git ignores common build artifacts, node_modules, logs, and large data files (`*.tsv`, `*.tsv.gz`, `*.csv`).
 - IMDb datasets are automatically downloaded by the init-downloader service.
+- **Automated Permissions**: The `fix-permissions` service automatically sets proper permissions on the data directory.
 - The suggestor supports both actor names (e.g., "Tom Hanks") and actor IDs (e.g., "nm0000158").
 - Pagination shows 7 movies per page for optimal performance.
 - For production deployment, consider using environment-specific configurations and secrets management.

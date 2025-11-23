@@ -1,7 +1,16 @@
 version: "3.9"
 
 services:
+  fix-permissions:
+    image: busybox
+    command: sh -c "chmod -R 777 /data"
+    volumes:
+      - ./data:/data
+
   init-downloader:
+    depends_on:
+      fix-permissions:
+        condition: service_completed_successfully
     image: curlimages/curl:latest
     container_name: imdb-downloader
     command: >
