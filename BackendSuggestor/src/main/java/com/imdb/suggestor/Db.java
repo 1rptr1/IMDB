@@ -27,10 +27,14 @@ public class Db {
         cfg.setMaxLifetime(30 * 60_000);
         cfg.setConnectionInitSql("SET TIME ZONE 'UTC'");
         cfg.addDataSourceProperty("options", "-c TimeZone=UTC");
+        // Add PostgreSQL-specific properties
+        cfg.addDataSourceProperty("ssl", "false");
+        cfg.addDataSourceProperty("sslmode", "disable");
+        cfg.addDataSourceProperty("prepareThreshold", "0"); // Disable server-side prepared statements
         ds = new HikariDataSource(cfg);
     }
 
-    public static Connection get() throws SQLException { return ds.getConnection(); }
+    public static Connection getConnection() throws SQLException { return ds.getConnection(); }
 
     private static String envOr(String k, String def) {
         String v = System.getenv(k);

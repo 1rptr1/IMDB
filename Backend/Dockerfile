@@ -19,17 +19,16 @@ done
 # ---- Runtime stage ----
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-# Copy app JAR and dependency jars copied by maven-dependency-plugin
-COPY --from=builder /usr/src/app/target/imdb-practice-backend-0.1.0.jar /app/app.jar
-COPY --from=builder /usr/src/app/target/dependency /app/dependency
+# Copy the fat JAR created by maven-assembly-plugin
+COPY --from=builder /usr/src/app/target/imdb-backend-1.0-SNAPSHOT-jar-with-dependencies.jar /app/app.jar
 # Config
 ENV PORT=3001 \
     DB_HOST=db \
     DB_PORT=5432 \
     DB_NAME=imdb \
-    DB_USER=postgres \
-    DB_PASSWORD=postgres \
+    DB_USER=imdb \
+    DB_PASSWORD=imdb \
     QUERY_TIMEOUT_SECONDS=10
 EXPOSE 3001
-# Use classpath with dependency/* since jar is not shaded
-CMD ["java","-cp","/app/app.jar:/app/dependency/*","com.imdb.practice.App"]
+# Run the fat JAR
+CMD ["java","-jar","/app/app.jar"]

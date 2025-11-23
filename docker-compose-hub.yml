@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # Data downloader - downloads IMDb datasets
   init-downloader:
     image: curlimages/curl:latest
     container_name: imdb-downloader
@@ -28,7 +29,10 @@ services:
       "
     volumes:
       - ./data:/data
+    networks:
+      - imdb-network
 
+  # PostgreSQL database
   db:
     image: postgres:15
     container_name: imdb-db
@@ -36,59 +40,78 @@ services:
       POSTGRES_DB: imdb
       POSTGRES_USER: imdb
       POSTGRES_PASSWORD: imdb
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./data:/docker-entrypoint-initdb.d/imdb
       - ./db-init:/docker-entrypoint-initdb.d
-    depends_on:
-      init-downloader:
-        condition: service_completed_successfully
+      - ./data:/data:ro  # Read-only access to downloaded data
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U imdb"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U imdb -d imdb"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - imdb-network
 
+  # Backend API service - Using Docker Hub image
   backend:
-    build: ./Backend
+    image: 1rptr1/imdb-backend:latest  # Docker Hub image
     container_name: imdb-backend
-    ports:
-      - "8080:8080"
     environment:
+      PORT: 3001
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: imdb
       DB_USER: imdb
       DB_PASSWORD: imdb
+      QUERY_TIMEOUT_SECONDS: 10
+    ports:
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - imdb-network
+    restart: unless-stopped
 
+  # Suggestor service - Using Docker Hub image
+  suggestor:
+    image: 1rptr1/imdb-suggestor:latest  # Docker Hub image
+    container_name: imdb-suggestor
+    environment:
+      PORT: 3010
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: imdb
+      DB_USER: imdb
+      DB_PASSWORD: imdb
+      QUERY_TIMEOUT_SECONDS: 10
+    ports:
+      - "9000:9000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - imdb-network
+    restart: unless-stopped
+
+  # Frontend service - Using Docker Hub image
   frontend:
-    build: ./Frontend
+    image: 1rptr1/imdb-frontend:latest  # Docker Hub image
     container_name: imdb-frontend
     ports:
       - "3000:80"
     depends_on:
-      backend:
-        condition: service_started
-
-  suggestor:
-    build: ./BackendSuggestor
-    container_name: imdb-suggestor
-    ports:
-      - "9000:9000"
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: imdb
-      DB_USER: imdb
-      DB_PASSWORD: imdb
-    depends_on:
-      backend:
-        condition: service_started
+      - backend
+      - suggestor
+    networks:
+      - imdb-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+
+networks:
+  imdb-network:
+    driver: bridge

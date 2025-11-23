@@ -55,7 +55,7 @@ public class App {
 
                 // List available genres
                 if ("/api/genres".equals(path) && "GET".equalsIgnoreCase(method)) {
-                    try (Connection c = Db.get();
+                    try (Connection c = Db.getConnection();
                          PreparedStatement ps = c.prepareStatement(
                                  "select distinct trim(g) as genre from (" +
                                          " select unnest(string_to_array(genres, ',')) g from title_basics where genres is not null" +
@@ -73,7 +73,7 @@ public class App {
                     return;
                 }
 
-                // Movies listing with filters: genre, actorId (nconst), year, limit, offset
+                // Movies listing with filters: genre, actorId (nconst or actor name), year, limit, offset
                 if ("/api/movies".equals(path) && "GET".equalsIgnoreCase(method)) {
                     Map<String, String> q = parseQuery(exchange.getRequestURI());
                     String genre = Optional.ofNullable(q.get("genre")).orElse("");
@@ -83,31 +83,42 @@ public class App {
                     int offset = parseIntOr(q.get("offset"), 0);
 
                     StringBuilder sql = new StringBuilder();
-                    sql.append("select tb.tconst as id, tb.\"primaryTitle\" as title, tb.\"startYear\" as year, tb.genres as genres, tr.\"averageRating\" as rating, tr.\"numVotes\" as votes\n");
+                    sql.append("select tb.tconst as id, tb.primarytitle as title, tb.startyear as year, tb.genres as genres, tr.averagerating as rating, tr.numvotes as votes\n");
                     sql.append("from title_basics tb\n");
                     sql.append("left join title_ratings tr on tr.tconst = tb.tconst\n");
                     if (!actorId.isBlank()) {
-                        sql.append("join title_principals tp on tp.tconst = tb.tconst and tp.nconst = ?\n");
+                        // Check if actorId is an nconst (starts with nm) or a name
+                        if (actorId.startsWith("nm")) {
+                            sql.append("join title_principals tp on tp.tconst = tb.tconst and tp.nconst = ?\n");
+                        } else {
+                            // Search by actor name
+                            sql.append("join title_principals tp on tp.tconst = tb.tconst\n");
+                            sql.append("join name_basics nb on nb.nconst = tp.nconst and nb.primaryname ILIKE ?\n");
+                        }
                     }
-                    sql.append("where tb.titleType = 'movie'\n");
+                    sql.append("where tb.titletype = 'movie'\n");
                     List<Object> params = new ArrayList<>();
                     if (!genre.isBlank()) {
                         sql.append("  and tb.genres ILIKE ?\n");
                         params.add("%" + genre + "%");
                     }
                     if (!actorId.isBlank()) {
-                        params.add(actorId);
+                        if (actorId.startsWith("nm")) {
+                            params.add(actorId);
+                        } else {
+                            params.add("%" + actorId + "%");
+                        }
                     }
                     if (!year.isBlank()) {
-                        sql.append("  and tb.\"startYear\" = ?\n");
+                        sql.append("  and tb.startyear = ?\n");
                         params.add(year);
                     }
-                    sql.append("order by tr.\"averageRating\" desc nulls last, tr.\"numVotes\" desc nulls last\n");
+                    sql.append("order by tr.averagerating::numeric desc nulls last, tr.numvotes::numeric desc nulls last\n");
                     sql.append("limit ? offset ?");
                     params.add(limit);
                     params.add(offset);
 
-                    try (Connection c = Db.get(); PreparedStatement ps = prepare(c, sql.toString(), params)) {
+                    try (Connection c = Db.getConnection(); PreparedStatement ps = prepare(c, sql.toString(), params)) {
                         List<Map<String, Object>> items = new ArrayList<>();
                         try (ResultSet rs = ps.executeQuery()) {
                             while (rs.next()) {
@@ -131,10 +142,10 @@ public class App {
                 // Movie details with cast
                 if (path.startsWith("/api/movies/") && "GET".equalsIgnoreCase(method)) {
                     String id = path.substring("/api/movies/".length());
-                    try (Connection c = Db.get()) {
+                    try (Connection c = Db.getConnection()) {
                         Map<String, Object> movie;
                         try (PreparedStatement ps = c.prepareStatement(
-                                "select tb.tconst as id, tb.\"primaryTitle\" as title, tb.\"startYear\" as year, tb.genres as genres, tr.\"averageRating\" as rating, tr.\"numVotes\" as votes " +
+                                "select tb.tconst as id, tb.primarytitle as title, tb.startyear as year, tb.genres as genres, tr.averagerating as rating, tr.numvotes as votes " +
                                         "from title_basics tb left join title_ratings tr on tr.tconst = tb.tconst where tb.tconst = ?")) {
                             ps.setString(1, id);
                             try (ResultSet rs = ps.executeQuery()) {
@@ -150,9 +161,9 @@ public class App {
                         }
                         List<Map<String, Object>> actors = new ArrayList<>();
                         try (PreparedStatement ps = c.prepareStatement(
-                                "select nb.nconst as id, nb.\"primaryName\" as name, tp.category as category " +
+                                "select nb.nconst as id, nb.primaryname as name, tp.category as category " +
                                         "from title_principals tp join name_basics nb on nb.nconst = tp.nconst " +
-                                        "where tp.tconst = ? and tp.category in ('actor','actress') order by nb.\"primaryName\" asc")) {
+                                        "where tp.tconst = ? and tp.category in ('actor','actress') order by nb.primaryname asc")) {
                             ps.setString(1, id);
                             try (ResultSet rs = ps.executeQuery()) {
                                 while (rs.next()) {
@@ -172,13 +183,51 @@ public class App {
                     return;
                 }
 
+                // Search actors by name
+                if ("/api/actors/search".equals(path) && "GET".equalsIgnoreCase(method)) {
+                    Map<String, String> q = parseQuery(exchange.getRequestURI());
+                    String query = Optional.ofNullable(q.get("q")).orElse("").trim();
+                    int limit = parseIntOr(q.get("limit"), 20);
+                    
+                    if (query.isBlank()) {
+                        writeJson(exchange, 400, Map.of("error", "Query parameter 'q' is required"));
+                        return;
+                    }
+                    
+                    try (Connection c = Db.getConnection();
+                         PreparedStatement ps = c.prepareStatement(
+                                 "select nb.nconst as id, nb.primaryname as name, nb.birthyear as birthYear " +
+                                 "from name_basics nb " +
+                                 "where nb.primaryname ILIKE ? " +
+                                 "order by nb.primaryname asc " +
+                                 "limit ?")) {
+                        ps.setString(1, "%" + query + "%");
+                        ps.setInt(2, limit);
+                        
+                        List<Map<String, Object>> actors = new ArrayList<>();
+                        try (ResultSet rs = ps.executeQuery()) {
+                            while (rs.next()) {
+                                Map<String, Object> actor = new LinkedHashMap<>();
+                                actor.put("id", rs.getString("id"));
+                                actor.put("name", rs.getString("name"));
+                                actor.put("birthYear", rs.getObject("birthYear"));
+                                actors.add(actor);
+                            }
+                        }
+                        writeJson(exchange, 200, Map.of("actors", actors));
+                    } catch (Exception e) {
+                        writeJson(exchange, 400, Map.of("error", e.getMessage()));
+                    }
+                    return;
+                }
+
                 // Actor details with top 10 films by combined score (rating * ln(1+votes))
                 if (path.startsWith("/api/actors/") && "GET".equalsIgnoreCase(method)) {
                     String id = path.substring("/api/actors/".length());
-                    try (Connection c = Db.get()) {
+                    try (Connection c = Db.getConnection()) {
                         Map<String, Object> actor;
                         try (PreparedStatement ps = c.prepareStatement(
-                                "select nb.nconst as id, nb.\"primaryName\" as name, nb.\"birthYear\" as birthYear " +
+                                "select nb.nconst as id, nb.primaryname as name, nb.birthyear as birthYear " +
                                         "from name_basics nb where nb.nconst = ?")) {
                             ps.setString(1, id);
                             try (ResultSet rs = ps.executeQuery()) {
@@ -191,13 +240,13 @@ public class App {
                         }
                         List<Map<String, Object>> films = new ArrayList<>();
                         try (PreparedStatement ps = c.prepareStatement(
-                                "select tb.tconst as id, tb.\"primaryTitle\" as title, tb.\"startYear\" as year, tr.\"averageRating\" as rating, tr.\"numVotes\" as votes, " +
-                                        " (tr.\"averageRating\" * ln(1 + tr.\"numVotes\")) as score " +
+                                "select tb.tconst as id, tb.primarytitle as title, tb.startyear as year, tr.averagerating as rating, tr.numvotes as votes, " +
+                                        " (tr.averagerating::numeric * ln(1 + tr.numvotes::numeric)) as score " +
                                         "from title_principals tp " +
-                                        " join title_basics tb on tb.tconst = tp.tconst and tb.titleType = 'movie' " +
+                                        " join title_basics tb on tb.tconst = tp.tconst and tb.titletype = 'movie' " +
                                         " left join title_ratings tr on tr.tconst = tb.tconst " +
                                         "where tp.nconst = ? and tp.category in ('actor','actress') " +
-                                        "order by score desc nulls last, tr.\"averageRating\" desc nulls last, tr.\"numVotes\" desc nulls last " +
+                                        "order by score desc nulls last, tr.averagerating::numeric desc nulls last, tr.numvotes::numeric desc nulls last " +
                                         "limit 10")) {
                             ps.setString(1, id);
                             try (ResultSet rs = ps.executeQuery()) {

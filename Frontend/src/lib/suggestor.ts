@@ -36,6 +36,14 @@ export async function getMovie(id: string) {
   return http<MovieDetails>(`/api/movies/${encodeURIComponent(id)}`)
 }
 
+export type ActorSearchResult = { id: string; name: string; birthYear?: number }
+export async function searchActors(query: string, limit: number = 10) {
+  const q = new URLSearchParams()
+  q.set('q', query)
+  q.set('limit', String(limit))
+  return http<{ actors: ActorSearchResult[] }>(`/api/actors/search?${q.toString()}`)
+}
+
 export type ActorDetails = { id: string; name: string; birthYear?: number; topFilms: Array<{ id: string; title: string; year?: number; rating?: number; votes?: number; score?: number }> }
 export async function getActor(id: string) {
   return http<ActorDetails>(`/api/actors/${encodeURIComponent(id)}`)

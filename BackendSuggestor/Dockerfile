@@ -15,9 +15,10 @@ done
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=builder /usr/src/app/target/imdb-backend-suggestor-0.1.0.jar /app/app.jar
-COPY --from=builder /usr/src/app/target/dependency /app/dependency
+# Copy the fat JAR created by maven-assembly-plugin
+COPY --from=builder /usr/src/app/target/imdb-backend-suggestor-0.1.0-jar-with-dependencies.jar /app/app.jar
 ENV PORT=3010 \
     QUERY_TIMEOUT_SECONDS=10
 EXPOSE 3010
-CMD ["java","-cp","/app/app.jar:/app/dependency/*","com.imdb.suggestor.App"]
+# Run the fat JAR
+CMD ["java","-jar","/app/app.jar"]

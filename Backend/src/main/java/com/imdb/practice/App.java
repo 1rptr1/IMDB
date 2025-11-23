@@ -35,7 +35,7 @@ public class App {
 
     private static List<Map<String, Object>> readTableSchema(String table) throws Exception {
         String sql = "SELECT column_name AS name, data_type AS type, is_nullable FROM information_schema.columns WHERE table_schema = 'public' AND table_name = ? ORDER BY ordinal_position";
-        try (Connection c = Db.get(); PreparedStatement ps = c.prepareStatement(sql)) {
+        try (Connection c = Db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, table);
             try (ResultSet rs = ps.executeQuery()) {
                 List<Map<String, Object>> out = new ArrayList<>();
@@ -260,7 +260,7 @@ public class App {
     }
 
     private static List<Map<String, Object>> executeSelect(String sql) throws Exception {
-        try (Connection c = Db.get(); Statement st = c.createStatement()) {
+        try (Connection c = Db.getConnection(); Statement st = c.createStatement()) {
             c.setAutoCommit(true);
             st.setQueryTimeout(Math.max(1, TIMEOUT_MS / 1000));
             // Ensure statement_timeout on server too
@@ -318,6 +318,14 @@ public class App {
     private static String sanitizeSql(String sql) {
         if (sql == null) return "";
         String s = sql.trim();
+        // Map simplified table names to actual table names
+        s = s.replaceAll("\\bbasics\\b", "title_basics");
+        s = s.replaceAll("\\bratings\\b", "title_ratings");
+        s = s.replaceAll("\\bprincipals\\b", "title_principals");
+        s = s.replaceAll("\\bcrew\\b", "title_crew");
+        s = s.replaceAll("\\bepisode\\b", "title_episode");
+        s = s.replaceAll("\\bakas\\b", "title_akas");
+        s = s.replaceAll("\\bname_basics\\b", "name_basics");
         // Remove any trailing semicolons and surrounding whitespace
         while (s.endsWith(";") || s.endsWith(" ") || s.endsWith("\n") || s.endsWith("\r") || s.endsWith("\t")) {
             s = s.replaceFirst("[;\n\r\t ]+$", "");
