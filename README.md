@@ -45,11 +45,21 @@ From the project root `IMDB`:
   ```
 - **Docker Hub deployment (pulls pre-built images)**
   ```bash
+  # Clean up existing containers and data (IMPORTANT)
+  docker compose -f docker-compose-hub.yml down -v
+  rm -rf data
+  mkdir data
+  chmod -R 777 data
+  
+  # Deploy using Docker Hub images
   docker compose -f docker-compose-hub.yml up -d
   ```
 - **Tear down**
   ```bash
   docker compose down
+  # For complete cleanup (including data)
+  docker compose down -v
+  rm -rf data
   ```
 
 ### Access Points
@@ -153,6 +163,12 @@ ssh -i ~/.ssh/id_rsa opc@<PUBLIC_IP>
 # Clone the repository
 git clone https://github.com/1rptr1/IMDB.git
 cd IMDB
+
+# Clean up any existing containers and data (IMPORTANT)
+docker compose -f docker-compose-hub.yml down -v
+rm -rf data
+mkdir data
+chmod -R 777 data
 
 # Deploy using Docker Hub images
 docker compose -f docker-compose-hub.yml up -d
