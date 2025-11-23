@@ -14,13 +14,23 @@ import_table() {
     return
   fi
 
+  # Validate gzip file integrity
+  if ! gzip -t "$DATA_DIR/$file" 2>/dev/null; then
+    echo "❌ Corrupted file: $file — skipping import. Please re-download."
+    return
+  fi
+
   echo "📥 Importing $file into $table ..."
 
-  gunzip -c "$DATA_DIR/$file" | \
+  # Import with error handling
+  if gunzip -c "$DATA_DIR/$file" | \
     psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
-    -c "\COPY $table FROM STDIN WITH (FORMAT TEXT, DELIMITER E'\t', NULL '\N');"
-
-  echo "✔ Imported $file into $table"
+    -c "\COPY $table FROM STDIN WITH (FORMAT TEXT, DELIMITER E'\t', NULL '\N');" 2>/dev/null; then
+    echo "✔ Imported $file into $table"
+  else
+    echo "❌ Failed to import $file — skipping."
+    return
+  fi
 }
 
 import_table "title.basics.tsv.gz"       "title_basics"

@@ -28,10 +28,28 @@ services:
         ' &&
         for f in $$files; do
           if [ -f \"$$f\" ]; then
-            echo \"$$f already exists, skipping\";
+            # Validate existing file
+            if gzip -t \"$$f\" 2>/dev/null; then
+              echo \"$$f already exists and is valid, skipping\";
+            else
+              echo \"$$f exists but is corrupted, re-downloading...\";
+              rm -f \"$$f\";
+              echo \"Downloading $$f ...\";
+              curl -L --retry 3 --retry-delay 5 -O https://datasets.imdbws.com/$$f;
+              # Validate downloaded file
+              if ! gzip -t \"$$f\" 2>/dev/null; then
+                echo \"Failed to download valid $$f, removing\";
+                rm -f \"$$f\";
+              fi
+            fi
           else
             echo \"Downloading $$f ...\";
-            curl -L -O https://datasets.imdbws.com/$$f;
+            curl -L --retry 3 --retry-delay 5 -O https://datasets.imdbws.com/$$f;
+            # Validate downloaded file
+            if ! gzip -t \"$$f\" 2>/dev/null; then
+              echo \"Failed to download valid $$f, removing\";
+              rm -f \"$$f\";
+            fi
           fi;
         done
       "

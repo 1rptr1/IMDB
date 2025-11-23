@@ -7,7 +7,6 @@ services:
     volumes:
       - ./data:/data
 
-  # Data downloader - downloads IMDb datasets
   init-downloader:
     depends_on:
       fix-permissions:
@@ -29,19 +28,34 @@ services:
         ' &&
         for f in $$files; do
           if [ -f \"$$f\" ]; then
-            echo \"$$f already exists, skipping\";
+            # Validate existing file
+            if gzip -t \"$$f\" 2>/dev/null; then
+              echo \"$$f already exists and is valid, skipping\";
+            else
+              echo \"$$f exists but is corrupted, re-downloading...\";
+              rm -f \"$$f\";
+              echo \"Downloading $$f ...\";
+              curl -L --retry 3 --retry-delay 5 -O https://datasets.imdbws.com/$$f;
+              # Validate downloaded file
+              if ! gzip -t \"$$f\" 2>/dev/null; then
+                echo \"Failed to download valid $$f, removing\";
+                rm -f \"$$f\";
+              fi
+            fi
           else
             echo \"Downloading $$f ...\";
-            curl -L -O https://datasets.imdbws.com/$$f;
+            curl -L --retry 3 --retry-delay 5 -O https://datasets.imdbws.com/$$f;
+            # Validate downloaded file
+            if ! gzip -t \"$$f\" 2>/dev/null; then
+              echo \"Failed to download valid $$f, removing\";
+              rm -f \"$$f\";
+            fi
           fi;
         done
       "
     volumes:
       - ./data:/data
-    networks:
-      - imdb-network
 
-  # PostgreSQL database
   db:
     image: postgres:15
     container_name: imdb-db
@@ -49,78 +63,59 @@ services:
       POSTGRES_DB: imdb
       POSTGRES_USER: imdb
       POSTGRES_PASSWORD: imdb
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db-init:/docker-entrypoint-initdb.d
-      - ./data:/data:ro  # Read-only access to downloaded data
-    ports:
-      - "5432:5432"
+      - ./data:/docker-entrypoint-initdb.d/imdb   # CRITICAL FIX
+    depends_on:
+      init-downloader:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U imdb -d imdb"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U imdb"]
+      interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - imdb-network
 
-  # Backend API service - Using Docker Hub image
   backend:
-    image: 1rptr1/imdb-backend:latest  # Docker Hub image
+    image: 1rptr1/imdb-backend:latest
     container_name: imdb-backend
-    environment:
-      PORT: 3001
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: imdb
-      DB_USER: imdb
-      DB_PASSWORD: imdb
-      QUERY_TIMEOUT_SECONDS: 10
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - imdb-network
-    restart: unless-stopped
-
-  # Suggestor service - Using Docker Hub image
-  suggestor:
-    image: 1rptr1/imdb-suggestor:latest  # Docker Hub image
-    container_name: imdb-suggestor
     environment:
-      PORT: 3010
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: imdb
       DB_USER: imdb
       DB_PASSWORD: imdb
-      QUERY_TIMEOUT_SECONDS: 10
-    ports:
-      - "9000:9000"
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - imdb-network
-    restart: unless-stopped
 
-  # Frontend service - Using Docker Hub image
   frontend:
-    image: 1rptr1/imdb-frontend:latest  # Docker Hub image
+    image: 1rptr1/imdb-frontend:latest
     container_name: imdb-frontend
     ports:
       - "3000:80"
     depends_on:
-      - backend
-      - suggestor
-    networks:
-      - imdb-network
-    restart: unless-stopped
+      backend:
+        condition: service_started
+
+  suggestor:
+    image: 1rptr1/imdb-suggestor:latest
+    container_name: imdb-suggestor
+    ports:
+      - "9000:9000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: imdb
+      DB_USER: imdb
+      DB_PASSWORD: imdb
+    depends_on:
+      backend:
+        condition: service_started
 
 volumes:
   postgres_data:
-
-networks:
-  imdb-network:
-    driver: bridge
